@@ -1,3 +1,5 @@
+;;; Copyright © 2011 Doug Orleans.  License is AGPL 3.
+
 #lang scheme
 
 (provide (all-defined-out))
