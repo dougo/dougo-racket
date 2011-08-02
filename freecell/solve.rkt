@@ -36,8 +36,12 @@
 	      (loop (cdr succ) seen unique)
 	      (loop (cdr succ) (cons game seen) (cons game unique)))))))
 
+(define make-move list)
+(define move-from first)
+(define move-to second)
+
 (define (successors game)
-  (map (lambda (move) (successor game (car move) (cadr move)))
+  (map (lambda (move) (successor game (move-from move) (move-to move)))
        (legal-moves game)))
 
 (define (successor game from to)
@@ -57,7 +61,7 @@
 	    (vector->list vec2))))
 
 (define (legal-moves game)
-  (filter (lambda (move) (legal-move? game (car move) (cadr move)))
+  (filter (lambda (move) (legal-move? game (move-from move) (move-to move)))
           (valid-moves game)))
 
 (define (valid-moves game)
@@ -67,7 +71,7 @@
   (let* ((valid-froms (append (make-wheres 'cell (game-cells game))
 			      (make-wheres 'stack (game-stacks game))))
 	 (valid-tos (append valid-froms (make-wheres 'pile (game-piles game)))))
-    (cross-product valid-froms valid-tos)))
+    (cartesian-product make-move valid-froms valid-tos)))
 
 
 ;; freecell.net Game #: 7x4 8954 difficulty 6

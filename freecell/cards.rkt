@@ -35,4 +35,4 @@
   (add1 (- (length *ranks*) (length (memq (card-rank card) *ranks*)))))
 
 (define (make-deck)
-  (cross-product *ranks* *suits*))
+  (cartesian-product make-card *ranks* *suits*))

@@ -4,6 +4,6 @@
 
 (provide (all-defined-out))
 
-(define (cross-product list1 list2)
+(define (cartesian-product make-tuple list1 list2)
   (for*/list ((x list1) (y list2))
-    (list x y)))
+    (make-tuple x y)))

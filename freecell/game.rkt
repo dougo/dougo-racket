@@ -66,8 +66,8 @@
 	    (loop (cdr deck) (modulo (add1 i) ncols)))))))
 
 (define make-where list)
-(define where-loc car)
-(define where-i cadr)
+(define where-loc first)
+(define where-i second)
 
 (define (legal-move? game from to)
   (let ((card (card-at game from)))
