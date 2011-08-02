@@ -14,12 +14,14 @@
   (set! *final-games*
 	(unique-succ-n (list game) (start-history game) n)))
 
-(define (start-history game) (list (canonicalize game)))
-(define (add-game game history) (cons (canonicalize game) history))
-(define (add-games games history) (append (map canonicalize games) history))
+(define (start-history game)
+  (set (canonicalize game)))
+(define (add-game game history)
+  (set-add history (canonicalize game)))
+(define (add-games games history)
+  (set-union (apply set (map canonicalize games)) history))
 (define (in-history? game history)
-  (let ((cg (canonicalize game)))
-    (memf (lambda (g) (equal? g cg)) history)))
+  (set-member? history (canonicalize game)))
 
 (define (canonicalize game)
   (list (sort (vector->list (game-cells game)) card<?)
