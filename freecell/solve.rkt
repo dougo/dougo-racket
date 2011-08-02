@@ -9,32 +9,38 @@
 
 (define *final-games* null)
 
+(define start-history list)
+(define add-game cons)
+(define add-games append)
+(define (in-history? game history)
+  (memf (lambda (g) (game-equal? g game)) history))
+
 (define (solve game n)
   (set! *final-games*
-	(unique-succ-n (list game) (list game) n)))
+	(unique-succ-n (list game) (start-history game) n)))
 
 (define (unique-succ-n games history n)
-  (let loop ((games games) (history history) (n n) (succ-n '()))
+  (let loop ((games games) (history history) (n n) (succ-n null))
     (if (= n 0)
 	(list games history)
 	(if (null? games)
 	    (begin (displayln (length succ-n))
-		   (loop succ-n history (sub1 n) '()))
+		   (loop succ-n history (sub1 n) null))
 	    (let* ((game (car games))
 		   (succ (unique-successors game history)))
 	      (loop (cdr games)
-		    (append succ history)
+		    (add-games succ history)
 		    n
 		    (append succ succ-n)))))))
 
 (define (unique-successors game history)
-  (let loop ((succ (successors game)) (seen history) (unique '()))
+  (let loop ((succ (successors game)) (seen history) (unique null))
     (if (null? succ)
 	unique
 	(let ((game (car succ)))
-	  (if (memf (lambda (g) (game-equal? g game)) seen)
+	  (if (in-history? game seen)
 	      (loop (cdr succ) seen unique)
-	      (loop (cdr succ) (cons game seen) (cons game unique)))))))
+	      (loop (cdr succ) (add-game game seen) (cons game unique)))))))
 
 (define make-move list)
 (define move-from first)
