@@ -5,27 +5,49 @@
 (provide (all-defined-out))
 
 (require "game.rkt")
+(require "cards.rkt")
 (require "utils.rkt")
 
 (define *final-games* null)
-
-(define start-history list)
-(define add-game cons)
-(define add-games append)
-(define (in-history? game history)
-  (memf (lambda (g) (game-equal? g game)) history))
 
 (define (solve game n)
   (set! *final-games*
 	(unique-succ-n (list game) (start-history game) n)))
 
+(define (start-history game) (list (canonicalize game)))
+(define (add-game game history) (cons (canonicalize game) history))
+(define (add-games games history) (append (map canonicalize games) history))
+(define (in-history? game history)
+  (let ((cg (canonicalize game)))
+    (memf (lambda (g) (equal? g cg)) history)))
+
+(define (canonicalize game)
+  (list (sort (vector->list (game-cells game)) card<?)
+        (sort (vector->list (game-stacks game)) stack<?)
+        (game-piles game)))
+
+(define (card<? card1 card2)
+  (and card1
+       (or (not card2)
+           (let ((v1 (card-value card1)) (v2 (card-value card2)))
+             (or (< v1 v2)
+                 (and (= v1 v2)
+                      (string<? (symbol->string (card-suit card1))
+                                (symbol->string (card-suit card2)))))))))
+
+(define (stack<? stack1 stack2)
+  (and (not (null? stack1))
+       (or (null? stack2)
+           (card<? (last stack1) (last stack2)))))
+
+
 (define (unique-succ-n games history n)
-  (let loop ((games games) (history history) (n n) (succ-n null))
+  (let loop ((games games) (history history) (n n) (succ-n '()))
     (if (= n 0)
 	(list games history)
 	(if (null? games)
 	    (begin (displayln (length succ-n))
-		   (loop succ-n history (sub1 n) null))
+		   (loop succ-n history (sub1 n) '()))
 	    (let* ((game (car games))
 		   (succ (unique-successors game history)))
 	      (loop (cdr games)
@@ -34,7 +56,7 @@
 		    (append succ succ-n)))))))
 
 (define (unique-successors game history)
-  (let loop ((succ (successors game)) (seen history) (unique null))
+  (let loop ((succ (successors game)) (seen history) (unique '()))
     (if (null? succ)
 	unique
 	(let ((game (car succ)))
@@ -55,16 +77,6 @@
     (move! new from to)
     new))
 
-
-(define (game-equal? game1 game2)
-  (and (equal? (game-piles game1) (game-piles game2))
-       (permutation? (game-cells game1) (game-cells game2))
-       (permutation? (game-stacks game1) (game-stacks game2))))
-
-(define (permutation? vec1 vec2)
-  (let ((l1 (vector->list vec1)))
-    (andmap (lambda (x) (member x l1))
-	    (vector->list vec2))))
 
 (define (legal-moves game)
   (filter (lambda (move) (legal-move? game (move-from move) (move-to move)))
