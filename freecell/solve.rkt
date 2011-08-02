@@ -18,7 +18,7 @@
     (if (= n 0)
 	(list games history)
 	(if (null? games)
-	    (begin (display (length succ-n)) (newline)
+	    (begin (displayln (length succ-n))
 		   (loop succ-n history (sub1 n) '()))
 	    (let* ((game (car games))
 		   (succ (unique-successors game history)))
@@ -32,7 +32,7 @@
     (if (null? succ)
 	unique
 	(let ((game (car succ)))
-	  (if (member-if game-equal? game seen)
+	  (if (memf (lambda (g) (game-equal? g game)) seen)
 	      (loop (cdr succ) seen unique)
 	      (loop (cdr succ) (cons game seen) (cons game unique)))))))
 
@@ -57,35 +57,18 @@
 	    (vector->list vec2))))
 
 (define (legal-moves game)
-  (remove-if (lambda (move) (not (legal-move? game (car move) (cadr move))))
-	     (valid-moves game)))
+  (filter (lambda (move) (legal-move? game (car move) (cadr move)))
+          (valid-moves game)))
 
 (define (valid-moves game)
   (define (make-wheres loc vec)
-    (let loop ((i (sub1 (vector-length vec))))
-      (if (< i 0)
-	  '()
-	  (cons (list loc i) (loop (sub1 i))))))
+    (for/list ((i (in-range (vector-length vec))))
+      (make-where loc i)))
   (let* ((valid-froms (append (make-wheres 'cell (game-cells game))
 			      (make-wheres 'stack (game-stacks game))))
 	 (valid-tos (append valid-froms (make-wheres 'pile (game-piles game)))))
     (cross-product valid-froms valid-tos)))
 
-(define (remove-if remove? l)
-  (let loop ((l l))
-    (cond ((null? l) '())
-	  ((remove? (car l)) (loop (cdr l)))
-	  (else (cons (car l) (loop (cdr l)))))))
-
-(define (remove-duplicates-if same? l)
-  (let loop ((l l))
-    (cond ((null? l) '())
-	  ((member-if same? (car l) (cdr l))
-	   (loop (cdr l)))
-	  (else (cons (car l) (loop (cdr l)))))))
-
-(define (member-if same? x l)
-  (ormap (lambda (y) (same? x y)) l))
 
 ;; freecell.net Game #: 7x4 8954 difficulty 6
 (define *game*
