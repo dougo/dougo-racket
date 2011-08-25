@@ -15,6 +15,10 @@
 	     (vector-copy (game-stacks game))
 	     (vector-copy (game-piles game))))
 
+(define (won? game)
+  (and (andmap not (vector->list (game-cells game)))
+       (andmap null? (vector->list (game-stacks game)))))
+
 (define (display-game game)
   (define (d x) (display x))
   (define (dc card) (display-card card))

@@ -19,7 +19,7 @@
 (define (add-game game history)
   (set-add history (canonicalize game)))
 (define (add-games games history)
-  (set-union (apply set (map canonicalize games)) history))
+  (set-union (list->set (map canonicalize games)) history))
 (define (in-history? game history)
   (set-member? history (canonicalize game)))
 
@@ -43,19 +43,28 @@
            (card<? (last stack1) (last stack2)))))
 
 
-(define (unique-succ-n games history n)
-  (let loop ((games games) (history history) (n n) (succ-n '()))
-    (if (= n 0)
-	(list games history)
+(define (unique-succ-n games history max-n)
+  (let loop ((games null) (history history) (n 0) (succ-n games))
+    (if (= n max-n)
+	(list succ-n history)
 	(if (null? games)
-	    (begin (displayln (length succ-n))
-		   (loop succ-n history (sub1 n) '()))
-	    (let* ((game (car games))
-		   (succ (unique-successors game history)))
-	      (loop (cdr games)
-		    (add-games succ history)
-		    n
-		    (append succ succ-n)))))))
+            (if (null? succ-n)
+                (begin (printf "The game is unwinnable")
+                       (printf " (at most ~a move~a can be made).~%"
+                               (sub1 n) (if (= n 2) "" "s"))
+                       (list succ-n history))
+                (begin (displayln (length succ-n))
+                       (loop succ-n history (add1 n) null)))
+	    (let ((game (car games)))
+              (if (won? game)
+                  (begin (printf "Won the game after ~a move~a.~%"
+                                 n (if (= n 1) "" "s"))
+                         (list (cons game succ-n) history))
+                  (let ((succ (unique-successors game history)))
+                    (loop (cdr games)
+                          (add-games succ history)
+                          n
+                          (append succ succ-n)))))))))
 
 (define (unique-successors game history)
   (let loop ((succ (successors game)) (seen history) (unique '()))
